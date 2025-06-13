@@ -9,14 +9,17 @@ import com.alias.exception.ThrowUtils;
 import com.alias.model.dto.entry.EntryQueryRequest;
 import com.alias.model.entity.Entry;
 import com.alias.model.entity.User;
+import com.alias.model.vo.EntryVO;
 import com.alias.service.EntryService;
 import com.alias.service.LedgerUserService;
 import com.alias.service.UserService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -85,7 +88,7 @@ public class EntryController {
      * 查询某个账本下所有账目
      */
     @PostMapping("/listByLedger")
-    public BaseResponse<List<Entry>> listLedgerEntries(@RequestBody EntryQueryRequest entryQueryRequest, HttpServletRequest request) {
+    public BaseResponse<List<EntryVO>> listLedgerEntries(@RequestBody EntryQueryRequest entryQueryRequest, HttpServletRequest request) {
         if (entryQueryRequest == null || entryQueryRequest.getLedgerId() == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "查询条件不能为空");
         }
@@ -95,7 +98,7 @@ public class EntryController {
         ThrowUtils.throwIf(!ledgerUserService.isMember(ledgerId, user.getId()),
                 ErrorCode.NO_AUTH_ERROR, "用户无权限查看该账本");
 
-        List<Entry> list = entryService.listEntriesByCondition(ledgerId, entryQueryRequest.getUserId(),
+        List<EntryVO> list = entryService.listEntriesByCondition(ledgerId, entryQueryRequest.getUserId(),
                 entryQueryRequest.getDate(), entryQueryRequest.getCategory(), entryQueryRequest.getKeyword(),
                 entryQueryRequest.getOrderBy(), entryQueryRequest.getOrderDirection());
         return ResultUtils.success(list);
@@ -105,7 +108,7 @@ public class EntryController {
      * 查询某个账本下用户的所有账目
      */
     @PostMapping("/listByUser")
-    public BaseResponse<List<Entry>> listLedgerEntriesByUserId(
+    public BaseResponse<List<EntryVO>> listLedgerEntriesByUserId(
             @RequestBody EntryQueryRequest entryQueryRequest, HttpServletRequest request
     ) {
         Long ledgerId = entryQueryRequest.getLedgerId();
@@ -118,7 +121,7 @@ public class EntryController {
         ThrowUtils.throwIf(!ledgerUserService.isMember(ledgerId, user.getId()),
                 ErrorCode.NO_AUTH_ERROR, "用户无权限查看该账本");
 
-        List<Entry> list = entryService.listEntriesByCondition(ledgerId, userId,
+        List<EntryVO> list = entryService.listEntriesByCondition(ledgerId, userId,
                 entryQueryRequest.getDate(), entryQueryRequest.getCategory(), entryQueryRequest.getKeyword(),
                 entryQueryRequest.getOrderBy(), entryQueryRequest.getOrderDirection());
         return ResultUtils.success(list);
@@ -128,12 +131,12 @@ public class EntryController {
      * 查询当前登录用户的所有账目
      */
     @PostMapping("/my/list")
-    public BaseResponse<List<Entry>> listLoginUserEntries(
+    public BaseResponse<List<EntryVO>> listLoginUserEntries(
             @RequestBody EntryQueryRequest entryQueryRequest, HttpServletRequest request
     ) {
         User user = userService.getLoginUser(request);
 
-        List<Entry> list = entryService.listEntriesByCondition(entryQueryRequest.getLedgerId(), user.getId(),
+        List<EntryVO> list = entryService.listEntriesByCondition(entryQueryRequest.getLedgerId(), user.getId(),
                 entryQueryRequest.getDate(), entryQueryRequest.getCategory(), entryQueryRequest.getKeyword(),
                 entryQueryRequest.getOrderBy(), entryQueryRequest.getOrderDirection());
         return ResultUtils.success(list);

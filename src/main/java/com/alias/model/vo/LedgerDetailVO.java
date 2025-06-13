@@ -57,7 +57,7 @@ public class LedgerDetailVO implements Serializable {
 
      private List<LedgerUserVO> members;
 
-     private List<Entry> entries;
+     private List<EntryVO> entries;
 
      private static final long serialVersionUID = 1L;
 

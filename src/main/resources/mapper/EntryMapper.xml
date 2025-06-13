@@ -23,4 +23,113 @@
         id,ledger_id,user_id,type,category,amount,icon,
         date,note,delete_time,create_time,update_time
     </sql>
+
+    <select id="listEntriesWithUser" resultType="com.alias.model.vo.EntryVO">
+        SELECT
+        e.id,
+        e.ledger_id as ledgerId,
+        e.user_id as userId,
+        u.username,
+        e.type,
+        e.category,
+        e.amount,
+        e.date,
+        e.note,
+        e.icon as icon,
+        e.delete_time as deleteTime,
+        e.update_time as updateTime,
+        e.create_time as createTime
+        FROM entry e
+        LEFT JOIN user u ON e.user_id = u.id
+        WHERE e.delete_time IS NULL
+        <if test="ledgerId != null">
+            AND e.ledger_id = #{ledgerId}
+        </if>
+        <if test="userId != null">
+            AND e.user_id = #{userId}
+        </if>
+        <if test="date != null">
+            AND e.date = #{date}
+        </if>
+        <if test="category != null and category != ''">
+            AND e.category = #{category}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND (
+            e.note LIKE CONCAT('%', #{keyword}, '%')
+            OR e.category LIKE CONCAT('%', #{keyword}, '%')
+            )
+        </if>
+        <choose>
+            <when test="orderBy != null and orderBy != ''">
+                ORDER BY ${orderBy}
+                <if test="orderDirection != null and orderDirection.toLowerCase() == 'asc'">
+                    ASC
+                </if>
+                <if test="orderDirection == null or orderDirection.toLowerCase() != 'asc'">
+                    DESC
+                </if>
+            </when>
+            <otherwise>
+                ORDER BY e.date DESC
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="listUserEntriesBetween" resultType="com.alias.model.vo.EntryVO">
+        SELECT
+            e.id,
+            e.ledger_id as ledgerId,
+            e.user_id as userId,
+            u.username,
+            e.type,
+            e.category,
+            e.amount,
+            e.date,
+            e.note,
+            e.icon as icon,
+            e.delete_time as deleteTime,
+            e.update_time as updateTime,
+            e.create_time as createTime
+        FROM
+            entry e
+                JOIN
+            user u ON e.user_id = u.id
+        WHERE
+            e.ledger_id = #{ledgerId}
+          AND e.user_id = #{userId}
+          AND e.date BETWEEN #{start} AND #{end}
+          AND e.delete_time IS NULL
+        ORDER BY
+            e.date DESC
+    </select>
+
+    <select id="listEntriesByLedgerIds" resultType="com.alias.model.vo.EntryVO">
+        SELECT
+        e.id,
+        e.ledger_id as ledgerId,
+        e.user_id as userId,
+        u.username,
+        e.type,
+        e.category,
+        e.amount,
+        e.date,
+        e.note,
+        e.icon as icon,
+        e.delete_time as deleteTime,
+        e.update_time as updateTime,
+        e.create_time as createTime
+        FROM
+        entry e
+        JOIN
+        user u ON e.user_id = u.id
+        WHERE
+        e.ledger_id IN
+        <foreach collection="ledgerIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        AND e.delete_time IS NULL
+        ORDER BY e.date DESC
+    </select>
+
 </mapper>

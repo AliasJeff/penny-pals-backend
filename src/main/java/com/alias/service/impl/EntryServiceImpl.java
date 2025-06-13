@@ -2,6 +2,7 @@ package com.alias.service.impl;
 
 import com.alias.common.ErrorCode;
 import com.alias.exception.BusinessException;
+import com.alias.model.vo.EntryVO;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.alias.model.entity.Entry;
@@ -9,11 +10,15 @@ import com.alias.service.EntryService;
 import com.alias.mapper.EntryMapper;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
 
 @Service
 public class EntryServiceImpl extends ServiceImpl<EntryMapper, Entry> implements EntryService {
+
+    @Resource
+    private EntryMapper entryMapper;
 
     @Override
     public boolean createEntry(Entry entry) {
@@ -66,49 +71,17 @@ public class EntryServiceImpl extends ServiceImpl<EntryMapper, Entry> implements
     }
 
     @Override
-    public List<Entry> listEntriesByCondition(Long ledgerId, Long userId, Date date, String category, String keyword, String orderBy, String orderDirection) {
-        QueryWrapper<Entry> queryWrapper = new QueryWrapper<>();
-        queryWrapper.isNull("delete_time");
-        if (ledgerId != null) {
-            queryWrapper.eq("ledger_id", ledgerId);
-        }
-        if (userId != null) {
-            queryWrapper.eq("user_id", userId);
-        }
-        if (date != null) {
-            queryWrapper.eq("date", date);
-        }
-        if (category != null) {
-            queryWrapper.eq("category", category);
-        }
-        if (keyword != null && !keyword.isEmpty()) {
-            queryWrapper.and(wrapper -> wrapper.like("note", keyword)
-                    .or().like("category", keyword));
-        }
-        if (orderBy != null && !orderBy.isEmpty()) {
-            if ("asc".equalsIgnoreCase(orderDirection)) {
-                queryWrapper.orderByAsc(orderBy);
-            } else {
-                queryWrapper.orderByDesc(orderBy);
-            }
-        } else {
-            queryWrapper.orderByDesc("date"); // 默认按日期降序
-        }
-        return this.list(queryWrapper);
+    public List<EntryVO> listEntriesByCondition(Long ledgerId, Long userId, Date date, String category, String keyword, String orderBy, String orderDirection) {
+        return entryMapper.listEntriesWithUser(ledgerId, userId, date, category, keyword, orderBy, orderDirection);
     }
 
     @Override
-    public List<Entry> listUserEntriesBetween(Long ledgerId, Long userId, Date start, Date end) {
+    public List<EntryVO> listUserEntriesBetween(Long ledgerId, Long userId, Date start, Date end) {
         if (ledgerId == null || userId == null || start == null || end == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数无效");
         }
 
-        return this.list(new QueryWrapper<Entry>()
-                .eq("ledger_id", ledgerId)
-                .eq("user_id", userId)
-                .between("date", start, end)
-                .isNull("delete_time")
-                .orderByDesc("date"));
+        return entryMapper.listUserEntriesBetween(ledgerId, userId, start, end);
     }
 }
 

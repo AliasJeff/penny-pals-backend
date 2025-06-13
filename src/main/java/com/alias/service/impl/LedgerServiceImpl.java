@@ -11,8 +11,10 @@ import com.alias.model.entity.Entry;
 import com.alias.model.entity.LedgerUser;
 import com.alias.model.entity.User;
 import com.alias.model.enums.LedgerRoleEnum;
+import com.alias.model.vo.EntryVO;
 import com.alias.model.vo.LedgerDetailVO;
 import com.alias.model.vo.LedgerUserVO;
+import com.alias.service.EntryService;
 import com.alias.service.LedgerUserService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -49,6 +51,9 @@ public class LedgerServiceImpl extends ServiceImpl<LedgerMapper, Ledger>
 
     @Resource
     private EntryMapper entryMapper;
+
+    @Resource
+    private EntryService entryService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -105,13 +110,13 @@ public class LedgerServiceImpl extends ServiceImpl<LedgerMapper, Ledger>
         entryQueryWrapper.eq("ledger_id", ledger.getId());
         entryQueryWrapper.isNull("delete_time");
         entryQueryWrapper.orderByDesc("date");
-        List<Entry> entries = entryMapper.selectList(entryQueryWrapper);
+        List<EntryVO> entries = entryService.listEntriesByCondition(ledger.getId(), null, null, null, null, "date", "desc");
 
         return getLedgerDetailVO(ledger, ledgerUserVOList, entries);
     }
 
     @NotNull
-    private static LedgerDetailVO getLedgerDetailVO(Ledger ledger, List<LedgerUserVO> ledgerUserVOList, List<Entry> entries) {
+    private static LedgerDetailVO getLedgerDetailVO(Ledger ledger, List<LedgerUserVO> ledgerUserVOList, List<EntryVO> entries) {
         LedgerDetailVO ledgerDetailVO = new LedgerDetailVO();
         ledgerDetailVO.setId(ledger.getId());
         ledgerDetailVO.setName(ledger.getName());
@@ -192,19 +197,17 @@ public class LedgerServiceImpl extends ServiceImpl<LedgerMapper, Ledger>
         Map<Long, List<LedgerUser>> membersMap = allMembers.stream().collect(Collectors.groupingBy(LedgerUser::getLedgerId));
 
         // 查询所有账目
-        QueryWrapper<Entry> entryQueryWrapper = new QueryWrapper<>();
-        entryQueryWrapper.in("ledger_id", ledgerIds);
-        entryQueryWrapper.isNull("delete_time");
-        entryQueryWrapper.orderByDesc("date");
-        List<Entry> allEntries = entryMapper.selectList(entryQueryWrapper);
-        Map<Long, List<Entry>> entriesMap = allEntries.stream().collect(Collectors.groupingBy(Entry::getLedgerId));
+        List<EntryVO> allEntries = entryMapper.listEntriesByLedgerIds(ledgerIds);
+        // 分组：Map<ledgerId, List<EntryVO>>
+        Map<Long, List<EntryVO>> entriesMap = allEntries.stream()
+                .collect(Collectors.groupingBy(EntryVO::getLedgerId));
 
         // 组装VO
         List<LedgerDetailVO> ledgerDetailVOList = new ArrayList<>();
         for (Ledger ledger : ledgers) {
             List<LedgerUser> members = membersMap.getOrDefault(ledger.getId(), Collections.emptyList());
             List<LedgerUserVO> memberVOs = ledgerUserService.toLedgerUserVOList(members);
-            List<Entry> entries = entriesMap.getOrDefault(ledger.getId(), Collections.emptyList());
+            List<EntryVO> entries = entriesMap.getOrDefault(ledger.getId(), Collections.emptyList());
 
             LedgerDetailVO ledgerDetailVO = getLedgerDetailVO(ledger, memberVOs, entries);
 

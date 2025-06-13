@@ -1,6 +1,7 @@
 package com.alias.service;
 
 import com.alias.model.entity.Entry;
+import com.alias.model.vo.EntryVO;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 import java.util.Date;
@@ -42,7 +43,7 @@ public interface EntryService extends IService<Entry> {
      * @param userId 用户ID
      * @return 账目列表
      */
-    List<Entry> listEntriesByCondition(Long ledgerId, Long userId, Date date, String category, String keyword, String orderBy, String orderDirection);
+    List<EntryVO> listEntriesByCondition(Long ledgerId, Long userId, Date date, String category, String keyword, String orderBy, String orderDirection);
 
     /**
      * 查询用户某段时间内的账目记录（可用于报表）
@@ -52,6 +53,6 @@ public interface EntryService extends IService<Entry> {
      * @param end 截止时间
      * @return 账目列表
      */
-    List<Entry> listUserEntriesBetween(Long ledgerId, Long userId, Date start, Date end);
+    List<EntryVO> listUserEntriesBetween(Long ledgerId, Long userId, Date start, Date end);
 
 }
