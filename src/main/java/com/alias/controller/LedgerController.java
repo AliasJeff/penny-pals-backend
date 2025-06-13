@@ -7,6 +7,7 @@ import com.alias.exception.BusinessException;
 import com.alias.exception.ThrowUtils;
 import com.alias.model.entity.Ledger;
 import com.alias.model.entity.User;
+import com.alias.model.vo.LedgerDetailVO;
 import com.alias.service.LedgerService;
 import com.alias.service.LedgerUserService;
 import com.alias.service.UserService;
@@ -58,7 +59,17 @@ public class LedgerController {
     @GetMapping("/get")
     public BaseResponse<Ledger> getLedgerById(@RequestParam Long id, HttpServletRequest request) {
         Ledger ledger = ledgerService.getLedgerById(id);
+        User user = userService.getLoginUser(request);
+        ThrowUtils.throwIf(!ledgerUserService.isMember(ledger.getId(), user.getId()), ErrorCode.NO_AUTH_ERROR);
         return ResultUtils.success(ledger);
+    }
+
+    @GetMapping("/get/detail")
+    public BaseResponse<LedgerDetailVO> getLedgerDetailById(@RequestParam Long id, HttpServletRequest request) {
+        LedgerDetailVO ledgerDetailById = ledgerService.getLedgerDetailById(id);
+        User user = userService.getLoginUser(request);
+        ThrowUtils.throwIf(!ledgerUserService.isMember(id, user.getId()), ErrorCode.NO_AUTH_ERROR);
+        return ResultUtils.success(ledgerDetailById);
     }
 
     /**
@@ -126,6 +137,19 @@ public class LedgerController {
         User loginUser = userService.getLoginUser(request);
         List<Ledger> ledgers = ledgerService.listLedgersByUserId(loginUser.getId());
         return ResultUtils.success(ledgers);
+    }
+
+    /**
+     * 获取当前用户所有账本的具体信息
+     *
+     * @param request
+     * @return
+     */
+    @GetMapping("/my/list/detail")
+    public BaseResponse<List<LedgerDetailVO>> listMyLedgerDetail(HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+
+        return ResultUtils.success(ledgerService.getLedgerDetailListByUserId(loginUser.getId()));
     }
 
 }

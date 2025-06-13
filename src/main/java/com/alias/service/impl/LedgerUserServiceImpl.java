@@ -179,21 +179,30 @@ public class LedgerUserServiceImpl extends ServiceImpl<LedgerUserMapper, LedgerU
         return checkUserRole(ledgerId, userId, LedgerRoleEnum.VIEWER);
     }
 
+    @Override
+    public boolean isMember(Long ledgerId, Long userId) {
+        return checkUserRole(ledgerId, userId, null);
+    }
+
     /**
      * 通用角色校验方法
      */
     private boolean checkUserRole(Long ledgerId, Long userId, LedgerRoleEnum role) {
-        if (ledgerId == null || userId == null || role == null) {
+        if (ledgerId == null || userId == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数无效");
         }
 
-        LedgerUser user = this.getOne(new QueryWrapper<LedgerUser>()
-                .eq("ledger_id", ledgerId)
-                .eq("user_id", userId)
-                .eq("role", role.getValue())
-                .isNull("delete_time"));
+        QueryWrapper<LedgerUser> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("ledger_id", ledgerId);
+        queryWrapper.eq("user_id", userId);
+        if (role != null) {
+            queryWrapper.eq("role", role.getValue());
+        }
+        queryWrapper.isNull("delete_time");
 
-        return user != null;
+        LedgerUser ledgerUser = this.getOne(queryWrapper);
+
+        return ledgerUser != null;
     }
 
     @Override

@@ -105,9 +105,7 @@ public class LedgerUserController {
         User loginUser = userService.getLoginUser(request);
         // 拥有任意角色都能查看成员列表
         ThrowUtils.throwIf(
-                !ledgerUserService.isUserOwner(ledgerId, loginUser.getId()) &&
-                        !ledgerUserService.isUserEditor(ledgerId, loginUser.getId()) &&
-                        !ledgerUserService.isUserViewer(ledgerId, loginUser.getId()),
+                !ledgerUserService.isMember(ledgerId, loginUser.getId()),
                 ErrorCode.NO_AUTH_ERROR, "无权限查看账本成员");
 
         List<LedgerUser> userList = ledgerUserService.listByLedgerId(ledgerId);

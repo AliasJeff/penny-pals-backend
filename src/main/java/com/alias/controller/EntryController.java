@@ -92,7 +92,7 @@ public class EntryController {
 
         Long ledgerId = entryQueryRequest.getLedgerId();
         User user = userService.getLoginUser(request);
-        ThrowUtils.throwIf(!ledgerUserService.isUserOwner(ledgerId, user.getId()) && ledgerUserService.isUserEditor(ledgerId, user.getId()) && ledgerUserService.isUserViewer(ledgerId, user.getId()),
+        ThrowUtils.throwIf(!ledgerUserService.isMember(ledgerId, user.getId()),
                 ErrorCode.NO_AUTH_ERROR, "用户无权限查看该账本");
 
         List<Entry> list = entryService.listEntriesByCondition(ledgerId, entryQueryRequest.getUserId(),
@@ -115,7 +115,7 @@ public class EntryController {
         }
 
         User user = userService.getLoginUser(request);
-        ThrowUtils.throwIf(!ledgerUserService.isUserOwner(ledgerId, user.getId()) && ledgerUserService.isUserEditor(ledgerId, user.getId()) && ledgerUserService.isUserViewer(ledgerId, user.getId()),
+        ThrowUtils.throwIf(!ledgerUserService.isMember(ledgerId, user.getId()),
                 ErrorCode.NO_AUTH_ERROR, "用户无权限查看该账本");
 
         List<Entry> list = entryService.listEntriesByCondition(ledgerId, userId,

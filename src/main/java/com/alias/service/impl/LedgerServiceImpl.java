@@ -1,25 +1,31 @@
 package com.alias.service.impl;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alias.common.ErrorCode;
 import com.alias.exception.BusinessException;
+import com.alias.exception.ThrowUtils;
+import com.alias.mapper.EntryMapper;
 import com.alias.mapper.LedgerUserMapper;
+import com.alias.model.entity.Entry;
 import com.alias.model.entity.LedgerUser;
 import com.alias.model.entity.User;
 import com.alias.model.enums.LedgerRoleEnum;
+import com.alias.model.vo.LedgerDetailVO;
+import com.alias.model.vo.LedgerUserVO;
+import com.alias.service.LedgerUserService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.alias.model.entity.Ledger;
 import com.alias.service.LedgerService;
 import com.alias.mapper.LedgerMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -37,6 +43,12 @@ public class LedgerServiceImpl extends ServiceImpl<LedgerMapper, Ledger>
 
     @Resource
     private LedgerUserMapper ledgerUserMapper;
+
+    @Resource
+    private LedgerUserService ledgerUserService;
+
+    @Resource
+    private EntryMapper entryMapper;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -76,10 +88,44 @@ public class LedgerServiceImpl extends ServiceImpl<LedgerMapper, Ledger>
         queryWrapper.eq("id", id)
                     .isNull("delete_time");
         Ledger ledger = ledgerMapper.selectOne(queryWrapper);
-        if (ledger == null) {
-            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "账本不存在");
-        }
+
+        ThrowUtils.throwIf(ledger == null, ErrorCode.NOT_FOUND_ERROR, "账本不存在");
         return ledger;
+    }
+
+    @Override
+    public LedgerDetailVO getLedgerDetailById(Long id) {
+        Ledger ledger = getLedgerById(id);
+        ThrowUtils.throwIf(ledger == null, ErrorCode.NOT_FOUND_ERROR, "账本不存在");
+
+        List<LedgerUser> ledgerUsers = ledgerUserService.listByLedgerId(ledger.getId());
+        List<LedgerUserVO> ledgerUserVOList = ledgerUserService.toLedgerUserVOList(ledgerUsers);
+
+        QueryWrapper<Entry> entryQueryWrapper = new QueryWrapper<>();
+        entryQueryWrapper.eq("ledger_id", ledger.getId());
+        entryQueryWrapper.isNull("delete_time");
+        entryQueryWrapper.orderByDesc("date");
+        List<Entry> entries = entryMapper.selectList(entryQueryWrapper);
+
+        return getLedgerDetailVO(ledger, ledgerUserVOList, entries);
+    }
+
+    @NotNull
+    private static LedgerDetailVO getLedgerDetailVO(Ledger ledger, List<LedgerUserVO> ledgerUserVOList, List<Entry> entries) {
+        LedgerDetailVO ledgerDetailVO = new LedgerDetailVO();
+        ledgerDetailVO.setId(ledger.getId());
+        ledgerDetailVO.setName(ledger.getName());
+        ledgerDetailVO.setIcon(ledger.getIcon());
+        ledgerDetailVO.setDescription(ledger.getDescription());
+        ledgerDetailVO.setCreateTime(ledger.getCreateTime());
+        ledgerDetailVO.setUpdateTime(ledger.getUpdateTime());
+
+        ledgerDetailVO.setMembers(ledgerUserVOList);
+        ledgerDetailVO.setEntries(entries);
+        if (!entries.isEmpty()) {
+            ledgerDetailVO.setUpdateTime(entries.get(0).getUpdateTime());
+        }
+        return ledgerDetailVO;
     }
 
     @Override
@@ -127,6 +173,47 @@ public class LedgerServiceImpl extends ServiceImpl<LedgerMapper, Ledger>
         ledgerMapper.updateById(ledger);
 
         return true;
+    }
+
+    @Override
+    public List<LedgerDetailVO> getLedgerDetailListByUserId(Long userId) {
+        List<Ledger> ledgers = listLedgersByUserId(userId);
+        if (CollUtil.isEmpty(ledgers)) {
+            return Collections.emptyList();
+        }
+
+        List<Long> ledgerIds = ledgers.stream().map(Ledger::getId).collect(Collectors.toList());
+
+        // 查询所有账本的成员
+        QueryWrapper<LedgerUser> ledgerUserQueryWrapper = new QueryWrapper<>();
+        ledgerUserQueryWrapper.in("ledger_id", ledgerIds);
+        ledgerUserQueryWrapper.isNull("delete_time");
+        List<LedgerUser> allMembers = ledgerUserMapper.selectList(ledgerUserQueryWrapper);
+        Map<Long, List<LedgerUser>> membersMap = allMembers.stream().collect(Collectors.groupingBy(LedgerUser::getLedgerId));
+
+        // 查询所有账目
+        QueryWrapper<Entry> entryQueryWrapper = new QueryWrapper<>();
+        entryQueryWrapper.in("ledger_id", ledgerIds);
+        entryQueryWrapper.isNull("delete_time");
+        entryQueryWrapper.orderByDesc("date");
+        List<Entry> allEntries = entryMapper.selectList(entryQueryWrapper);
+        Map<Long, List<Entry>> entriesMap = allEntries.stream().collect(Collectors.groupingBy(Entry::getLedgerId));
+
+        // 组装VO
+        List<LedgerDetailVO> ledgerDetailVOList = new ArrayList<>();
+        for (Ledger ledger : ledgers) {
+            List<LedgerUser> members = membersMap.getOrDefault(ledger.getId(), Collections.emptyList());
+            List<LedgerUserVO> memberVOs = ledgerUserService.toLedgerUserVOList(members);
+            List<Entry> entries = entriesMap.getOrDefault(ledger.getId(), Collections.emptyList());
+
+            LedgerDetailVO ledgerDetailVO = getLedgerDetailVO(ledger, memberVOs, entries);
+
+            ledgerDetailVOList.add(ledgerDetailVO);
+        }
+
+        ledgerDetailVOList.sort(Comparator.comparing(LedgerDetailVO::getUpdateTime, Comparator.nullsLast(Comparator.reverseOrder())));
+
+        return ledgerDetailVOList;
     }
 
     @Override

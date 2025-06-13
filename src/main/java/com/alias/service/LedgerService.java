@@ -1,6 +1,7 @@
 package com.alias.service;
 
 import com.alias.model.entity.Ledger;
+import com.alias.model.vo.LedgerDetailVO;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 import java.util.List;
@@ -19,8 +20,12 @@ public interface LedgerService extends IService<Ledger> {
      */
     Ledger getLedgerById(Long id);
 
-    // TODO 获取账本、用户、账单所有信息
-
+    /**
+     * 获取账本具体信息，包括user, entries
+     * @param id
+     * @return
+     */
+    LedgerDetailVO getLedgerDetailById(Long id);
 
     /**
      * 根据用户ID获取账本列表
@@ -50,4 +55,11 @@ public interface LedgerService extends IService<Ledger> {
      * @return 是否删除成功
      */
     boolean deleteLedger(Long id);
+
+    /**
+     * 根据用户ID获取账本具体信息，包括user, entries
+     * @param userId
+     * @return
+     */
+    List<LedgerDetailVO> getLedgerDetailListByUserId(Long userId);
 }

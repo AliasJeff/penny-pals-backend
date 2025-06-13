@@ -77,17 +77,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     @Override
     public User getLoginUser(HttpServletRequest request) {
-        String token = request.getHeader("Authorization");
-        if (StringUtils.isBlank(token) || !token.startsWith("Bearer ")) {
-            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
-        }
-
-        token = token.replace("Bearer ", "");
-        Long userId = JwtUtils.getUserIdFromToken(token);
-        request.setAttribute("userId", userId);
-        User user = this.getById(userId);
+        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
+        User user = (User) userObj;
         if (user == null) {
-            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "用户不存在");
+            String token = request.getHeader("Authorization");
+            if (StringUtils.isBlank(token) || !token.startsWith("Bearer ")) {
+                throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+            }
+
+            token = token.replace("Bearer ", "");
+            Long userId = JwtUtils.getUserIdFromToken(token);
+            request.setAttribute("userId", userId);
+            user = this.getById(userId);
+        }
+        if (user == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
         }
         if (user.getDeleteTime() != null) {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "用户已删除");
@@ -97,20 +101,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
 
         return user;
-
-//        // 先判断是否已登录
-//        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
-//        User currentUser = (User) userObj;
-//        if (currentUser == null || currentUser.getId() == null) {
-//            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
-//        }
-//        // 从数据库查询（追求性能可以注释，直接走缓存）
-//        long userId = currentUser.getId();
-//        currentUser = this.getById(userId);
-//        if (currentUser == null) {
-//            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
-//        }
-//        return currentUser;
     }
 
     @Override

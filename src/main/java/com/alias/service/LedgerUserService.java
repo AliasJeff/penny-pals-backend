@@ -88,6 +88,15 @@ public interface LedgerUserService extends IService<LedgerUser> {
     boolean isUserViewer(Long ledgerId, Long userId);
 
     /**
+     * 是否是账本成员
+     *
+     * @param ledgerId
+     * @param userId
+     * @return
+     */
+    boolean isMember(Long ledgerId, Long userId);
+
+    /**
      * 从账本中移除用户（管理员）
      * @param ledgerId 账本ID
      * @param userId 用户ID
