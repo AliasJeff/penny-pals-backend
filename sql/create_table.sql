@@ -96,6 +96,22 @@ CREATE TABLE IF NOT EXISTS budget_config (
     INDEX idx_user_id (user_id)
 ) COMMENT '预算配置表' COLLATE = utf8mb4_unicode_ci;
 
+-- 6. 账本邀请表
+DROP TABLE IF EXISTS ledger_invite;
+CREATE TABLE IF NOT EXISTS ledger_invite (
+    id BIGINT AUTO_INCREMENT COMMENT '账本邀请ID' PRIMARY KEY,
+    ledger_id BIGINT NOT NULL COMMENT '账本ID',
+    user_id BIGINT DEFAULT NULL COMMENT '邀请者ID',
+    code VARCHAR(32) UNIQUE COMMENT '邀请码',
+    expire_time DATETIME COMMENT '过期时间',
+    invited_user_id BIGINT DEFAULT NULL COMMENT '被邀请人ID',
+    delete_time DATETIME DEFAULT NULL COMMENT '删除时间',
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT '创建时间',
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE,
+    INDEX idx_code (code)
+) COMMENT '账本邀请表' COLLATE = utf8mb4_unicode_ci;
+
 INSERT INTO `penny_pals`.`user` (`id`, `username`, `password`, `avatar`, `email`, `phone_number`, `birthday`, `union_id`, `open_id`, `user_role`, `create_time`, `update_time`, `delete_time`) VALUES (1001, 'zhexun', '194344925efb6fdd57eb0384376fa278', NULL, 'zhexunchen@gmail.com', '19557864422', '2002-02-27', NULL, NULL, 'admin', '2025-06-10 18:41:59', '2025-06-10 21:04:41', NULL);
 INSERT INTO `penny_pals`.`user` (`id`, `username`, `password`, `avatar`, `email`, `phone_number`, `birthday`, `union_id`, `open_id`, `user_role`, `create_time`, `update_time`, `delete_time`) VALUES (1002, 'jeffery', '194344925efb6fdd57eb0384376fa278', NULL, 'zhexunchen+1@gmail.com', '19557864422', NULL, NULL, NULL, 'admin', '2025-06-10 20:56:32', '2025-06-10 21:04:39', NULL);
 INSERT INTO `penny_pals`.`user` (`id`, `username`, `password`, `avatar`, `email`, `phone_number`, `birthday`, `union_id`, `open_id`, `user_role`, `create_time`, `update_time`, `delete_time`) VALUES (1003, 'user', '194344925efb6fdd57eb0384376fa278', NULL, 'zhexunchen+2@gmail.com', '13311112222', NULL, NULL, NULL, 'user', '2025-06-10 21:04:22', '2025-06-10 21:04:22', NULL);

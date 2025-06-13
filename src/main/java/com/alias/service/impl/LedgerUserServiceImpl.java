@@ -2,6 +2,7 @@ package com.alias.service.impl;
 
 import com.alias.common.ErrorCode;
 import com.alias.exception.BusinessException;
+import com.alias.exception.ThrowUtils;
 import com.alias.mapper.LedgerUserMapper;
 import com.alias.model.entity.LedgerUser;
 import com.alias.model.entity.User;
@@ -39,12 +40,20 @@ public class LedgerUserServiceImpl extends ServiceImpl<LedgerUserMapper, LedgerU
 
         // 校验是否已存在
         LedgerUser existing = this.getOne(new QueryWrapper<LedgerUser>()
-                .eq("ledger_id", ledgerUser.getUserId())
-                .eq("user_id", ledgerUser.getLedgerId())
-                .isNull("delete_time"));
+                .eq("ledger_id", ledgerUser.getLedgerId())
+                .eq("user_id", ledgerUser.getUserId()));
 
         if (existing != null) {
-            throw new BusinessException(ErrorCode.OPERATION_ERROR, "该用户已在账本中");
+            if (existing.getDeleteTime() == null) {
+                throw new BusinessException(ErrorCode.OPERATION_ERROR, "该用户已在账本中");
+            }
+            existing.setDeleteTime(null);
+            int rows = ledgerUserMapper.updateById(existing);
+            if (rows == 0) {
+                log.error("Failed to add ledger user: {}", ledgerUser);
+                throw new BusinessException(ErrorCode.OPERATION_ERROR, "更新账本用户失败");
+            }
+            return true;
         }
 
         LedgerUser ledgerUserToSave = new LedgerUser();
