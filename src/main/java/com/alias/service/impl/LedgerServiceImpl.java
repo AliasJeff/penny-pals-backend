@@ -110,7 +110,7 @@ public class LedgerServiceImpl extends ServiceImpl<LedgerMapper, Ledger>
         entryQueryWrapper.eq("ledger_id", ledger.getId());
         entryQueryWrapper.isNull("delete_time");
         entryQueryWrapper.orderByDesc("date");
-        List<EntryVO> entries = entryService.listEntriesByCondition(ledger.getId(), null, null, null, null, "date", "desc");
+        List<EntryVO> entries = entryService.listEntriesByCondition(ledger.getId(), null, null, null, null, "date", "desc", null, null);
 
         return getLedgerDetailVO(ledger, ledgerUserVOList, entries);
     }

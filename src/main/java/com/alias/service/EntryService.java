@@ -43,16 +43,6 @@ public interface EntryService extends IService<Entry> {
      * @param userId 用户ID
      * @return 账目列表
      */
-    List<EntryVO> listEntriesByCondition(Long ledgerId, Long userId, Date date, String category, String keyword, String orderBy, String orderDirection);
-
-    /**
-     * 查询用户某段时间内的账目记录（可用于报表）
-     * @param ledgerId 账本ID
-     * @param userId 用户ID
-     * @param start 起始时间
-     * @param end 截止时间
-     * @return 账目列表
-     */
-    List<EntryVO> listUserEntriesBetween(Long ledgerId, Long userId, Date start, Date end);
+    List<EntryVO> listEntriesByCondition(Long ledgerId, Long userId, Date date, String category, String keyword, String orderBy, String orderDirection, Date startDate, Date endDate);
 
 }

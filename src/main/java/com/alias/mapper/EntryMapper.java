@@ -19,6 +19,8 @@ public interface EntryMapper extends BaseMapper<Entry> {
     List<EntryVO> listEntriesWithUser(@Param("ledgerId") Long ledgerId,
                                       @Param("userId") Long userId,
                                       @Param("date") Date date,
+                                      @Param("startDate") Date startDate,
+                                      @Param("endDate") Date endDate,
                                       @Param("category") String category,
                                       @Param("keyword") String keyword,
                                       @Param("orderBy") String orderBy,

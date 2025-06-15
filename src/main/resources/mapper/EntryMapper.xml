@@ -51,6 +51,12 @@
         <if test="date != null">
             AND e.date = #{date}
         </if>
+        <if test="startDate != null">
+            AND e.date &gt;= #{startDate}
+        </if>
+        <if test="endDate != null">
+            AND e.date &lt;= #{endDate}
+        </if>
         <if test="category != null and category != ''">
             AND e.category = #{category}
         </if>

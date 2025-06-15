@@ -71,17 +71,8 @@ public class EntryServiceImpl extends ServiceImpl<EntryMapper, Entry> implements
     }
 
     @Override
-    public List<EntryVO> listEntriesByCondition(Long ledgerId, Long userId, Date date, String category, String keyword, String orderBy, String orderDirection) {
-        return entryMapper.listEntriesWithUser(ledgerId, userId, date, category, keyword, orderBy, orderDirection);
-    }
-
-    @Override
-    public List<EntryVO> listUserEntriesBetween(Long ledgerId, Long userId, Date start, Date end) {
-        if (ledgerId == null || userId == null || start == null || end == null) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数无效");
-        }
-
-        return entryMapper.listUserEntriesBetween(ledgerId, userId, start, end);
+    public List<EntryVO> listEntriesByCondition(Long ledgerId, Long userId, Date date, String category, String keyword, String orderBy, String orderDirection, Date startDate, Date endDate) {
+        return entryMapper.listEntriesWithUser(ledgerId, userId, date, startDate, endDate, category, keyword, orderBy, orderDirection);
     }
 }
 

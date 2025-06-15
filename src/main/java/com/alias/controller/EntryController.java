@@ -100,7 +100,8 @@ public class EntryController {
 
         List<EntryVO> list = entryService.listEntriesByCondition(ledgerId, entryQueryRequest.getUserId(),
                 entryQueryRequest.getDate(), entryQueryRequest.getCategory(), entryQueryRequest.getKeyword(),
-                entryQueryRequest.getOrderBy(), entryQueryRequest.getOrderDirection());
+                entryQueryRequest.getOrderBy(), entryQueryRequest.getOrderDirection(),
+                entryQueryRequest.getStartDate(), entryQueryRequest.getEndDate());
         return ResultUtils.success(list);
     }
 
@@ -123,7 +124,7 @@ public class EntryController {
 
         List<EntryVO> list = entryService.listEntriesByCondition(ledgerId, userId,
                 entryQueryRequest.getDate(), entryQueryRequest.getCategory(), entryQueryRequest.getKeyword(),
-                entryQueryRequest.getOrderBy(), entryQueryRequest.getOrderDirection());
+                entryQueryRequest.getOrderBy(), entryQueryRequest.getOrderDirection(), entryQueryRequest.getStartDate(), entryQueryRequest.getEndDate());
         return ResultUtils.success(list);
     }
 
@@ -138,7 +139,7 @@ public class EntryController {
 
         List<EntryVO> list = entryService.listEntriesByCondition(entryQueryRequest.getLedgerId(), user.getId(),
                 entryQueryRequest.getDate(), entryQueryRequest.getCategory(), entryQueryRequest.getKeyword(),
-                entryQueryRequest.getOrderBy(), entryQueryRequest.getOrderDirection());
+                entryQueryRequest.getOrderBy(), entryQueryRequest.getOrderDirection(), entryQueryRequest.getStartDate(), entryQueryRequest.getEndDate());
         return ResultUtils.success(list);
     }
 }

@@ -12,6 +12,7 @@ import com.alias.service.LedgerUserService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.alias.model.entity.LedgerInvite;
 import com.alias.service.LedgerInviteService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -23,6 +24,7 @@ import java.util.UUID;
 * @description 针对表【ledger_invite(账本邀请表)】的数据库操作Service实现
 * @createDate 2025-06-13 15:16:31
 */
+@Slf4j
 @Service
 public class LedgerInviteServiceImpl extends ServiceImpl<LedgerInviteMapper, LedgerInvite>
     implements LedgerInviteService{
@@ -32,6 +34,7 @@ public class LedgerInviteServiceImpl extends ServiceImpl<LedgerInviteMapper, Led
 
     @Override
     public String createInviteCode(Long ledgerId, Long userId) {
+        log.info("[createInviteCode] ledgerId={}, userId={}", ledgerId, userId);
         String code = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
 
         LedgerInvite invite = new LedgerInvite();
@@ -46,6 +49,7 @@ public class LedgerInviteServiceImpl extends ServiceImpl<LedgerInviteMapper, Led
 
     @Override
     public void joinByInviteCode(String code, Long invitedUserId) {
+        log.info("[joinByInviteCode] code={}", code);
         LedgerInvite invite = lambdaQuery()
                 .eq(LedgerInvite::getCode, code)
                 .isNull(LedgerInvite::getDeleteTime)

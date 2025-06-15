@@ -68,6 +68,10 @@ public class EntryQueryRequest implements Serializable {
 
     private String orderDirection;
 
+    private Date startDate;
+
+    private Date endDate;
+
     /**
      * 删除时间
      */
