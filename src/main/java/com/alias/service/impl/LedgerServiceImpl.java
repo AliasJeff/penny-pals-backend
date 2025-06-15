@@ -128,7 +128,8 @@ public class LedgerServiceImpl extends ServiceImpl<LedgerMapper, Ledger>
         ledgerDetailVO.setMembers(ledgerUserVOList);
         ledgerDetailVO.setEntries(entries);
         if (!entries.isEmpty()) {
-            ledgerDetailVO.setUpdateTime(entries.get(0).getUpdateTime());
+            Date updateTime = entries.stream().map(EntryVO::getUpdateTime).max(Date::compareTo).get();
+            ledgerDetailVO.setUpdateTime(updateTime);
         }
         return ledgerDetailVO;
     }

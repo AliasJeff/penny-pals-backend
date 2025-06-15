@@ -17,9 +17,6 @@ import com.alias.model.vo.UserVO;
 import com.alias.service.UserService;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.extern.slf4j.Slf4j;
-import me.chanjar.weixin.common.bean.WxOAuth2UserInfo;
-import me.chanjar.weixin.common.bean.oauth2.WxOAuth2AccessToken;
-import me.chanjar.weixin.mp.api.WxMpService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +27,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 import java.util.List;
+import java.util.Objects;
 
 import static com.alias.service.impl.UserServiceImpl.SALT;
 
@@ -151,11 +149,14 @@ public class UserController {
      * @return
      */
     @PostMapping("/update")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Boolean> updateUser(@RequestBody User userUpdateRequest,
                                             HttpServletRequest request) {
         if (userUpdateRequest == null || userUpdateRequest.getId() == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        if (!Objects.equals(loginUser.getUserRole(), UserConstant.ADMIN_ROLE) && !Objects.equals(loginUser.getId(), userUpdateRequest.getId())) {
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
         }
         User user = new User();
         BeanUtils.copyProperties(userUpdateRequest, user);
